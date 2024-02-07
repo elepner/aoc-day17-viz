@@ -1,0 +1,47 @@
+<table>
+  @for (row of rowCols(); track $index) {
+  <tr>
+    @for (cell of row; track $index) {
+    <td>
+      <table>
+        <tr>
+          <th>
+            P\D
+          </th>
+          <th>
+            UP
+          </th>
+          <th>
+            DOWN
+          </th>
+          <th>
+            LEFT
+          </th>
+          <th>
+            RIGHT
+          </th>
+        </tr>
+
+        @for (level of levels; track $index) {
+        <tr>
+          <td>
+            {{level}}
+          </td>
+          <td class="up level-{{level}}">
+          </td>
+          <td class="down level-{{level}}">
+          </td>
+          <td class="left level-{{level}}">
+          </td>
+          <td class="right level-{{level}}">
+          </td>
+        </tr>
+
+        }
+      </table>
+
+    </td>
+    }
+  </tr>
+  }
+</table>

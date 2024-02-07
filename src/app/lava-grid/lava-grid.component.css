@@ -1,0 +1,15 @@
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+td.level-0 {
+  background-color: red;
+}
+td.level-1 {
+  background-color: green;
+}
+td.level-2 {
+  background-color: blue;
+}
