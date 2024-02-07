@@ -1,47 +1,54 @@
-<table>
-  @for (row of rowCols(); track $index) {
-  <tr>
-    @for (cell of row; track $index) {
-    <td>
-      <table>
-        <tr>
-          <th>
-            P\D
-          </th>
-          <th>
-            UP
-          </th>
-          <th>
-            DOWN
-          </th>
-          <th>
-            LEFT
-          </th>
-          <th>
-            RIGHT
-          </th>
-        </tr>
+{{lines | json}}
+<div class="wrapper" #wrapper>
+  <table>
+    @for (row of rowCols(); track $index) {
+    <tr>
+      @for (cell of row; track $index) {
+      <td>
+        <table>
+          <tr>
+            <th>
+              P\D
+            </th>
+            <th>
+              UP
+            </th>
+            <th>
+              DOWN
+            </th>
+            <th>
+              LEFT
+            </th>
+            <th>
+              RIGHT
+            </th>
+          </tr>
 
-        @for (level of levels; track $index) {
-        <tr>
-          <td>
-            {{level}}
-          </td>
-          <td class="up level-{{level}}">
-          </td>
-          <td class="down level-{{level}}">
-          </td>
-          <td class="left level-{{level}}">
-          </td>
-          <td class="right level-{{level}}">
-          </td>
-        </tr>
+          @for (level of levels; track $index) {
+          <tr class="lava-row">
+            <td>
+              {{level}}
+            </td>
+            @for(direction of directions; track $index) {
+            <td #lavaCell class="level-{{level}}" id="{{cell.rowNum}}_{{cell.colNum}}_{{level}}_{{direction}}">
 
-        }
-      </table>
-
-    </td>
+            </td>
+            }
+          </tr>
+          }
+        </table>
+      </td>
+      }
+    </tr>
     }
-  </tr>
-  }
-</table>
+  </table>
+  <svg xmlns="http://www.w3.org/2000/svg">
+    @for (line of lines; track $index) {
+    <line [attr.x1]="line[0][0]" [attr.y1]="line[0][1]" [attr.x2]="line[1][0]" [attr.y2]="line[1][1]" stroke="black"
+          marker-end="url(#arrow)" />
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
+    </marker>`
+    }
+  </svg>
+</div>
