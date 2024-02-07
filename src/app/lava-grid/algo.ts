@@ -71,7 +71,7 @@ const oppositeMap: { [p in Direction]: Direction } = {
   right: 'left'
 }
 
-type RouteInfo = {
+export type RouteInfo = {
   row: number;
   col: number;
   penalty: number;
@@ -84,6 +84,7 @@ export function getParams(data: number[][]): Params<RouteInfo> {
       return data[node.data.row][node.data.col];
     },
     getNeighbors: function* (node) {
+
       for (const dir of directions) {
         const current = node.data;
         if (oppositeMap[dir] === current.direction) {

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, QueryList, ViewChild, ViewChildren, computed, input } from '@angular/core';
-import { getParams } from './algo';
+import { RouteInfo, getParams } from './algo';
 import { CommonModule } from '@angular/common';
 interface Cell {
   rowNum: number;
@@ -53,6 +53,7 @@ export class LavaGridComponent implements AfterViewInit {
     const grid = this.rowCols().map((row) => {
       return row.map(() => 42)
     })
+    console.log('CALC grid', this.rowCols(), 'Grid:', grid)
     return getParams(grid);
   })
 
@@ -62,26 +63,125 @@ export class LavaGridComponent implements AfterViewInit {
   ngAfterViewInit(): void {
 
     const res = this.cellEls.toArray().map(el => el.nativeElement);
-    console.log(res);
+    const cellsMap = res.reduce((acc, el) => {
+      acc[el.id] = el;
+      return acc;
+    }, {} as Record<string, HTMLElement>);
+    console.log(cellsMap);
 
-    let rectWrapper = this.wrapperEl.nativeElement.getBoundingClientRect();
+    const rectWrapper = this.wrapperEl.nativeElement.getBoundingClientRect();
+
+    const lines: Array<[Vector, Vector]> = [];
+    for (const row of this.rowCols()) {
+      for (const cell of row) {
+        for (const direction of directions) {
+          for (const penalty of this.levels) {
+            const startNode = {
+              col: cell.colNum,
+              row: cell.rowNum,
+              direction: direction,
+              penalty: penalty
+            };
+            const start = cellsMap[toId(startNode)];
+            if (!start) {
+              console.log(`Missing start! ${toId(startNode)}`, startNode)
+              continue;
+
+            }
+            for (const neighbour of this.params().getNeighbors({
+              data: startNode
+            })) {
+              const end = cellsMap[toId(neighbour.data)];
+              if (!end) {
+                console.log(`Missing end! ${toId(neighbour.data)}`, neighbour.data)
+
+                continue;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const allCells = this.rowCols()
+      .flatMap(x => x.flatMap(y => y))
+      .filter(cell => cell.colNum === 1 && cell.colNum === 1)
+      .flatMap(cell => directions.map((dir) => {
+        return this.levels.flatMap((level) => {
+          return {
+            col: cell.colNum,
+            row: cell.rowNum,
+            direction: dir,
+            penalty: level
+          }
+        })
+      }))
+      .flatMap(x => x)
+      .map((data) => {
+        return {
+          start: data,
+          ends: Array.from(this.params().getNeighbors({
+            data: data
+          })).map(x => x.data)
+        }
+      });
+
+    console.log(allCells)
+
+
 
     const element1 = res[0];
-    const element2 = res[42];
+    const element2 = res[1];
+    const rect1 = element1.getBoundingClientRect();
+    const rect2 = element2.getBoundingClientRect();
 
-    let rect1 = element1.getBoundingClientRect();
-    let rect2 = element2.getBoundingClientRect();
+    // this.lines.push([rect1, rect2].map(
+    //   (r) => ([r.left + r.width / 2 - rectWrapper.left, r.top + r.height / 2 - rectWrapper.top])) as any
+    // )
 
     setTimeout(() => {
-      this.lines.push([rect1, rect2].map(
-        (r) => ([r.left + r.width / 2 - rectWrapper.left, r.top + r.height / 2 - rectWrapper.top])) as any
-      )
+      allCells.forEach((cell) => {
+        const element1 = cellsMap[toId(cell.start)];
+        const rect1 = element1.getBoundingClientRect();
+
+        cell.ends.forEach((end) => {
+          const element2 = cellsMap[toId(end)];
+          if (!element2) {
+            console.log('Missing element', end);
+            return
+          }
+          const rect2 = element2.getBoundingClientRect();
+          this.lines.push([rect1, rect2].map(
+            (r) => ([r.left + r.width / 2 - rectWrapper.left, r.top + r.height / 2 - rectWrapper.top])) as any
+          )
+        })
+      })
+
     })
   }
 
   lines: Array<[Vector, Vector]> = [];
 
-  makeOneSvg() {
+}
 
+function makeLine(element1: HTMLElement, element2: HTMLElement, relativeTo: DOMRect) {
+  const rect1 = element1.getBoundingClientRect();
+  const rect2 = element2.getBoundingClientRect();
+  return [rect1, rect2].map(
+    (r) => ([r.left + r.width / 2 - relativeTo.left, r.top + r.height / 2 - relativeTo.top])) as any
+
+}
+
+function toId(route: RouteInfo) {
+  return `${route.row}_${route.col}_${route.penalty}_${route.direction}`;
+}
+
+function fromDirection(id: string): RouteInfo {
+  const split = id.split('_');
+  return {
+    row: Number(split[0]),
+    col: Number(split[1]),
+    penalty: Number(split[2]),
+    direction: split[3] as any
   }
 }
