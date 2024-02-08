@@ -28,6 +28,14 @@ type Vector = [number, number];
 })
 export class LavaGridComponent implements AfterViewInit {
 
+  readonly legend = [
+    { class: 'visited', label: 'Visited Nodes' },
+    { class: 'surface', label: 'Current Queue' },
+    { class: 'isCurrentNeighbor', label: 'Checking neighbor' },
+    { class: 'isScannedNeighbor', label: 'Scanned neighbors' },
+    { class: 'isCurrent', label: 'Element picked from queue' }
+  ]
+
   @ViewChildren('lavaCell')
   cellEls!: QueryList<ElementRef<HTMLElement>>
 

@@ -1,3 +1,13 @@
+<div class="legend">
+  @for (legendItem of legend; track $index) {
+  <div class="icon" [class]="legendItem.class">
+
+  </div>
+  <div>
+    {{legendItem.label}}
+  </div>
+  }
+</div>
 <div class="wrapper" #wrapper>
   <table>
     @for (row of rowCols(); track $index;) {

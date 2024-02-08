@@ -4,23 +4,35 @@ td, th {
   padding: 8px;
 }
 
-td.visited {
+.visited {
   background-color: rgba(0, 0, 0, 0.2);
 }
 
-.info-grid > .surface {
+.surface {
   background-color: cyan;
 }
 
-.info-grid > .isCurrent {
+
+.legend {
+  display: grid;
+  grid-template-columns: 15px auto;
+  align-items: center;
+}
+
+.legend .icon {
+  width: 10px;
+  height: 10px;
+}
+
+ .isCurrent {
   background-color: red;
 }
 
-.info-grid > .isScannedNeighbor {
+ .isCurrentNeighbor {
   background-color: blueviolet;
 }
 
-.info-grid > .isScannedNeighbor {
+ .isScannedNeighbor {
   background-color: cadetblue;
 }
 
