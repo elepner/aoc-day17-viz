@@ -29,6 +29,8 @@ export type DijkstraStep<T> = {
   node: T;
 } | {
   type: 'next-neighbor'
+} | {
+  type: 'complete-cycle'
 }
 
 export function* dijsktra<T>(params: Params<T>, start: Vertex<T>): Generator<DijkstraStep<T>, void, unknown> {
@@ -102,6 +104,9 @@ export function* dijsktra<T>(params: Params<T>, start: Vertex<T>): Generator<Dij
       yield {
         type: 'next-neighbor'
       }
+    }
+    yield {
+      type: 'complete-cycle',
     }
   }
   throw new Error('Could not find finish')

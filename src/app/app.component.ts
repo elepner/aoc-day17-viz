@@ -1,8 +1,10 @@
 import { Component, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
 import { LavaGridComponent } from "./lava-grid/lava-grid.component";
 import { DijkstraStep, NodeInfo, RouteInfo, dijsktra, getParams } from './lava-grid/algo';
 import { CommonModule } from '@angular/common';
+import { Subject, Subscription, filter, finalize, interval, takeUntil, takeWhile } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -10,7 +12,14 @@ import { CommonModule } from '@angular/common';
   template: `
   {{surface | json}}
     <button (click)="nextStep()">Next step</button>
-    Last step: {{lastStep() | json}}
+    @if(!autoPlaySub) {
+      <button (click)="autoPlay()">Auto</button>
+    }
+    @else {
+      <button (click)="autoPlaySub.unsubscribe()">Cancel</button>
+    }
+    
+    Last step: {{lastStep()?.type | json}}
     <app-lava-grid [inputData]="inputData" 
     [surface]="surface()"
     [visited]="visited()"
@@ -54,7 +63,7 @@ export class AppComponent {
 
   currentJob?: Generator<DijkstraStep<RouteInfo>>
 
-  hasNext: boolean = false;
+  hasNext = signal<boolean>(false);
 
   surface = signal<Record<string, NodeInfo<RouteInfo>>>({});
   visited = signal<Record<string, boolean>>({});
@@ -63,6 +72,19 @@ export class AppComponent {
   currentNeighbor = signal<RouteInfo | undefined>(undefined);
 
   lastStep = signal<DijkstraStep<RouteInfo> | null>(null);
+
+  autoPlaySub?: Subscription
+
+
+  autoPlay() {
+    this.autoPlaySub = interval(250).pipe(
+      finalize(() => {
+        this.autoPlaySub = undefined;
+      })
+    ).subscribe(() => {
+      this.nextStep();
+    });
+  }
 
   nextStep() {
     if (!this.currentJob) {
@@ -76,7 +98,10 @@ export class AppComponent {
     var step = this.currentJob.next();
     console.log('Processing step', step.value);
     this.processStep(step.value);
-    this.hasNext = !step.done;
+    this.hasNext.set(!step.done);
+    if (step.done) {
+      this.autoPlaySub?.unsubscribe();
+    }
   }
 
   processStep(step: DijkstraStep<RouteInfo>) {
@@ -101,7 +126,10 @@ export class AppComponent {
     else if (step.type === 'visited-updated') {
       this.visited.set({
         ...step.visited
-      })
+      });
+    } else if (step.type === 'complete-cycle') {
+      this.currentNeighbor.set(undefined)
+      this.scannedNeighbors.set([]);;
     }
   }
 
