@@ -15,14 +15,14 @@ interface NodeInfo<T> {
 }
 function dijsktra<T>(params: Params<T>, start: Vertex<T>) {
   const surface: Record<string, NodeInfo<T>> = {};
-  const visited: Record<string, number> = {};
+  const visited: Record<string, boolean> = {};
 
   surface[params.getKey(start)] = {
     currentCost: params.getCost(start),
     node: start
   }
 
-  visited[params.getKey(start)] = params.getCost(start);
+  visited[params.getKey(start)] = true//params.getCost(start);
   let count = 0;
   while (Object.keys(surface).length > 0) {
     count++;
@@ -33,7 +33,7 @@ function dijsktra<T>(params: Params<T>, start: Vertex<T>) {
     const currentNode = surface[currentKey].node;
     const currentCost = surface[currentKey].currentCost;
 
-    visited[currentKey] = currentCost;
+    visited[currentKey] = true//currentCost;
     delete surface[currentKey];
     if (params.isFinish(currentNode)) {
       return currentCost;
@@ -84,17 +84,18 @@ export function getParams(data: number[][]): Params<RouteInfo> {
       return data[node.data.row][node.data.col];
     },
     getNeighbors: function* (node) {
-
+      console.log('Get neigh', node)
       for (const dir of directions) {
         const current = node.data;
         if (oppositeMap[dir] === current.direction) {
           continue;
         }
-        const [dc, dr] = directionMap[dir];
-        const newCol = current.col + dc;
+        const [dr, dc] = directionMap[dir];
         const newRow = current.row + dr;
 
-        if (!inBounds(data, newCol, newRow)) {
+        const newCol = current.col + dc;
+
+        if (!inBounds(data, newRow, newCol)) {
           continue;
         }
         const penalty = dir === current.direction ? current.penalty + 1 : 0;

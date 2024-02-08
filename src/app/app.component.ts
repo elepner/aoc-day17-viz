@@ -7,7 +7,7 @@ import { LavaGridComponent } from "./lava-grid/lava-grid.component";
   standalone: true,
   template: `
     <h1>Welcome to {{title}}!</h1>
-    <app-lava-grid [cols]="5" [rows]="3"></app-lava-grid>
+    <app-lava-grid [cols]="3" [rows]="3"></app-lava-grid>
     <router-outlet />
   `,
   styles: [],

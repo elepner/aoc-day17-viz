@@ -73,9 +73,13 @@ export class LavaGridComponent implements AfterViewInit {
 
     const lines: Array<[Vector, Vector]> = [];
     for (const row of this.rowCols()) {
+
       for (const cell of row) {
+        if (cell.colNum !== 1 || cell.rowNum !== 1) continue;
         for (const direction of directions) {
+          // if (direction !== 'right') continue;
           for (const penalty of this.levels) {
+            // if (penalty !== 0) continue;
             const startNode = {
               col: cell.colNum,
               row: cell.rowNum,
@@ -86,47 +90,51 @@ export class LavaGridComponent implements AfterViewInit {
             if (!start) {
               console.log(`Missing start! ${toId(startNode)}`, startNode)
               continue;
-
             }
-            for (const neighbour of this.params().getNeighbors({
+            const neighbours = Array.from(this.params().getNeighbors({
               data: startNode
-            })) {
+            }));
+            console.log('Found N neighbours: ', neighbours, 'of', startNode)
+            for (const neighbour of neighbours) {
+
+              console.log({ startNode, end: neighbour.data })
               const end = cellsMap[toId(neighbour.data)];
               if (!end) {
                 console.log(`Missing end! ${toId(neighbour.data)}`, neighbour.data)
 
                 continue;
               }
+              lines.push(makeLine(start, end, rectWrapper))
             }
           }
         }
       }
     }
 
-    const allCells = this.rowCols()
-      .flatMap(x => x.flatMap(y => y))
-      .filter(cell => cell.colNum === 1 && cell.colNum === 1)
-      .flatMap(cell => directions.map((dir) => {
-        return this.levels.flatMap((level) => {
-          return {
-            col: cell.colNum,
-            row: cell.rowNum,
-            direction: dir,
-            penalty: level
-          }
-        })
-      }))
-      .flatMap(x => x)
-      .map((data) => {
-        return {
-          start: data,
-          ends: Array.from(this.params().getNeighbors({
-            data: data
-          })).map(x => x.data)
-        }
-      });
+    // const allCells = this.rowCols()
+    //   .flatMap(x => x.flatMap(y => y))
+    //   .filter(cell => cell.colNum === 1 && cell.colNum === 1)
+    //   .flatMap(cell => directions.map((dir) => {
+    //     return this.levels.flatMap((level) => {
+    //       return {
+    //         col: cell.colNum,
+    //         row: cell.rowNum,
+    //         direction: dir,
+    //         penalty: level
+    //       }
+    //     })
+    //   }))
+    //   .flatMap(x => x)
+    //   .map((data) => {
+    //     return {
+    //       start: data,
+    //       ends: Array.from(this.params().getNeighbors({
+    //         data: data
+    //       })).map(x => x.data)
+    //     }
+    //   });
 
-    console.log(allCells)
+    // console.log(allCells)
 
 
 
@@ -140,23 +148,23 @@ export class LavaGridComponent implements AfterViewInit {
     // )
 
     setTimeout(() => {
-      allCells.forEach((cell) => {
-        const element1 = cellsMap[toId(cell.start)];
-        const rect1 = element1.getBoundingClientRect();
+      // allCells.forEach((cell) => {
+      //   const element1 = cellsMap[toId(cell.start)];
+      //   const rect1 = element1.getBoundingClientRect();
 
-        cell.ends.forEach((end) => {
-          const element2 = cellsMap[toId(end)];
-          if (!element2) {
-            console.log('Missing element', end);
-            return
-          }
-          const rect2 = element2.getBoundingClientRect();
-          this.lines.push([rect1, rect2].map(
-            (r) => ([r.left + r.width / 2 - rectWrapper.left, r.top + r.height / 2 - rectWrapper.top])) as any
-          )
-        })
-      })
-
+      //   cell.ends.forEach((end) => {
+      //     const element2 = cellsMap[toId(end)];
+      //     if (!element2) {
+      //       console.log('Missing element', end);
+      //       return
+      //     }
+      //     const rect2 = element2.getBoundingClientRect();
+      //     this.lines.push([rect1, rect2].map(
+      //       (r) => ([r.left + r.width / 2 - rectWrapper.left, r.top + r.height / 2 - rectWrapper.top])) as any
+      //     )
+      //   })
+      // })
+      this.lines = lines
     })
   }
 
@@ -164,11 +172,16 @@ export class LavaGridComponent implements AfterViewInit {
 
 }
 
-function makeLine(element1: HTMLElement, element2: HTMLElement, relativeTo: DOMRect) {
+function makeLine(element1: HTMLElement, element2: HTMLElement, relativeTo: DOMRect): [Vector, Vector] {
   const rect1 = element1.getBoundingClientRect();
   const rect2 = element2.getBoundingClientRect();
-  return [rect1, rect2].map(
-    (r) => ([r.left + r.width / 2 - relativeTo.left, r.top + r.height / 2 - relativeTo.top])) as any
+  return [
+    [rect1.left + rect1.width / 2 - relativeTo.left, rect1.top + rect1.height / 2 - relativeTo.top],
+    [rect2.left + rect2.width * 0.2 - relativeTo.left, rect2.top + rect2.height * 0.2 - relativeTo.top],
+
+  ]
+  // return [rect1, rect2].map(
+  //   (r) => ([r.left + r.width / 2 - relativeTo.left, r.top + r.height / 2 - relativeTo.top])) as any
 
 }
 

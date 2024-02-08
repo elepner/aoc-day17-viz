@@ -4,7 +4,8 @@
     <tr>
       @for (cell of row; track $index) {
       <td>
-        <table>
+        row: {{cell.rowNum}}; col: {{cell.colNum}}
+        <table id="{{cell.rowNum}}_{{cell.colNum}}">
           <tr>
             <th>
               P\D
@@ -30,7 +31,7 @@
             </td>
             @for(direction of directions; track $index) {
             <td #lavaCell class="level-{{level}}" id="{{cell.rowNum}}_{{cell.colNum}}_{{level}}_{{direction}}">
-
+              <!-- row: {{cell.rowNum}}, col: {{cell.colNum}}, penalty: {{level}}, direction: {{direction}} -->
             </td>
             }
           </tr>
