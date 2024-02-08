@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
 import { LavaGridComponent } from "./lava-grid/lava-grid.component";
@@ -27,9 +27,9 @@ import { Subject, Subscription, filter, finalize, interval, takeUntil, takeWhile
     [scannedNeighbors]="scannedNeighbors()"
     [currentNeighbor]="currentNeighbor()" ></app-lava-grid>
     
-    @for (item of surface() | keyvalue; track $index) {
+    @for (item of sortedSurface(); track $index) {
       <div>
-        {{item.key}}: {{item.value | json}}
+        {{item[0]}}: {{item[1] | json}}
       </div>
     }
   `,
@@ -55,9 +55,19 @@ export class AppComponent {
 
 
   inputData = `
-  241343
-  321545
-  `.trim().split('\n').map(line => line.trim().split('').map(x => Number(x)));
+  2413432311
+  3215453535
+  3255245654
+  3446585845
+  4546657867
+  1438598798
+`.trim().split('\n').map(line => line.trim().split('').map(x => Number(x)));
+
+
+  // inputData = `
+  // 241343
+  // 321545
+  // `.trim().split('\n').map(line => line.trim().split('').map(x => Number(x)));
 
   inputParams = getParams(this.inputData);
 
@@ -66,6 +76,14 @@ export class AppComponent {
   hasNext = signal<boolean>(false);
 
   surface = signal<Record<string, NodeInfo<RouteInfo>>>({});
+
+  sortedSurface = computed(() => {
+    const eintries = Object.entries(this.surface()).sort((a, b) => {
+      return a[1].currentCost - b[1].currentCost
+    })
+    return eintries;
+  })
+
   visited = signal<Record<string, boolean>>({});
   currentNodeId = signal<string>('');
   scannedNeighbors = signal<RouteInfo[]>([]);
@@ -77,7 +95,7 @@ export class AppComponent {
 
 
   autoPlay() {
-    this.autoPlaySub = interval(250).pipe(
+    this.autoPlaySub = interval(24).pipe(
       finalize(() => {
         this.autoPlaySub = undefined;
       })
