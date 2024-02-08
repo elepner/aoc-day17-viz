@@ -1,9 +1,10 @@
-import { AfterViewInit, Component, ElementRef, QueryList, ViewChild, ViewChildren, computed, input } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, QueryList, ViewChild, ViewChildren, computed, input, signal } from '@angular/core';
 import { RouteInfo, getParams } from './algo';
 import { CommonModule } from '@angular/common';
 interface Cell {
   rowNum: number;
   colNum: number;
+  weight: number;
 }
 
 const directions = ['up', 'down', 'left', 'right'] as const;
@@ -32,21 +33,18 @@ export class LavaGridComponent implements AfterViewInit {
   @ViewChild('wrapper')
   wrapperEl!: ElementRef<HTMLDivElement>;
 
-  rows = input<number>(0);
-  cols = input<number>(0);
+
+  inputData = input<number[][]>([]);
+
 
   rowCols = computed(() => {
-    var result: Cell[][] = [];
-    for (let i = 0; i < this.rows(); i++) {
-      result.push([])
-      for (let j = 0; j < this.cols(); j++) {
-        result.at(-1)!.push({
-          colNum: j,
-          rowNum: i,
-        })
-      }
-    }
-    return result;
+    return this.inputData().map((row, i) => row.map((weight, j) => {
+      return {
+        rowNum: i,
+        colNum: j,
+        weight: weight
+      } satisfies Cell;
+    }))
   })
 
   params = computed(() => {
@@ -77,9 +75,7 @@ export class LavaGridComponent implements AfterViewInit {
       for (const cell of row) {
         if (cell.colNum !== 1 || cell.rowNum !== 1) continue;
         for (const direction of directions) {
-          // if (direction !== 'right') continue;
           for (const penalty of this.levels) {
-            // if (penalty !== 0) continue;
             const startNode = {
               col: cell.colNum,
               row: cell.rowNum,
@@ -91,16 +87,14 @@ export class LavaGridComponent implements AfterViewInit {
               console.log(`Missing start! ${toId(startNode)}`, startNode)
               continue;
             }
-            const neighbours = Array.from(this.params().getNeighbors({
-              data: startNode
-            }));
+            const neighbours = Array.from(this.params().getNeighbors(startNode));
             console.log('Found N neighbours: ', neighbours, 'of', startNode)
             for (const neighbour of neighbours) {
 
-              console.log({ startNode, end: neighbour.data })
-              const end = cellsMap[toId(neighbour.data)];
+              console.log({ startNode, end: neighbour })
+              const end = cellsMap[toId(neighbour)];
               if (!end) {
-                console.log(`Missing end! ${toId(neighbour.data)}`, neighbour.data)
+                console.log(`Missing end! ${toId(neighbour)}`, neighbour)
 
                 continue;
               }
@@ -110,61 +104,8 @@ export class LavaGridComponent implements AfterViewInit {
         }
       }
     }
-
-    // const allCells = this.rowCols()
-    //   .flatMap(x => x.flatMap(y => y))
-    //   .filter(cell => cell.colNum === 1 && cell.colNum === 1)
-    //   .flatMap(cell => directions.map((dir) => {
-    //     return this.levels.flatMap((level) => {
-    //       return {
-    //         col: cell.colNum,
-    //         row: cell.rowNum,
-    //         direction: dir,
-    //         penalty: level
-    //       }
-    //     })
-    //   }))
-    //   .flatMap(x => x)
-    //   .map((data) => {
-    //     return {
-    //       start: data,
-    //       ends: Array.from(this.params().getNeighbors({
-    //         data: data
-    //       })).map(x => x.data)
-    //     }
-    //   });
-
-    // console.log(allCells)
-
-
-
-    const element1 = res[0];
-    const element2 = res[1];
-    const rect1 = element1.getBoundingClientRect();
-    const rect2 = element2.getBoundingClientRect();
-
-    // this.lines.push([rect1, rect2].map(
-    //   (r) => ([r.left + r.width / 2 - rectWrapper.left, r.top + r.height / 2 - rectWrapper.top])) as any
-    // )
-
     setTimeout(() => {
-      // allCells.forEach((cell) => {
-      //   const element1 = cellsMap[toId(cell.start)];
-      //   const rect1 = element1.getBoundingClientRect();
-
-      //   cell.ends.forEach((end) => {
-      //     const element2 = cellsMap[toId(end)];
-      //     if (!element2) {
-      //       console.log('Missing element', end);
-      //       return
-      //     }
-      //     const rect2 = element2.getBoundingClientRect();
-      //     this.lines.push([rect1, rect2].map(
-      //       (r) => ([r.left + r.width / 2 - rectWrapper.left, r.top + r.height / 2 - rectWrapper.top])) as any
-      //     )
-      //   })
-      // })
-      this.lines = lines
+      // this.lines = lines
     })
   }
 

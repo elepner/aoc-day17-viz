@@ -1,6 +1,4 @@
-interface Vertex<T> {
-  data: T;
-}
+type Vertex<T> = T
 
 interface Params<T> {
   getNeighbors(node: Vertex<T>): Iterable<Vertex<T>>;
@@ -9,11 +7,31 @@ interface Params<T> {
   isFinish(node: Vertex<T>): boolean;
 }
 
-interface NodeInfo<T> {
+export interface NodeInfo<T> {
   node: Vertex<T>;
   currentCost: number;
 }
-function dijsktra<T>(params: Params<T>, start: Vertex<T>) {
+
+export type DijkstraStep<T> = {
+  type: 'surface-updated';
+  surface: Record<string, NodeInfo<T>>;
+} | {
+  type: 'visited-updated';
+  visited: Record<string, boolean>;
+} | {
+  type: 'current-updated';
+  currentId: string;
+} | {
+  type: 'neighbors-scanned',
+  neighbors: T[]
+} | {
+  type: 'neighbor-picked',
+  node: T;
+} | {
+  type: 'next-neighbor'
+}
+
+export function* dijsktra<T>(params: Params<T>, start: Vertex<T>): Generator<DijkstraStep<T>, void, unknown> {
   const surface: Record<string, NodeInfo<T>> = {};
   const visited: Record<string, boolean> = {};
 
@@ -23,6 +41,11 @@ function dijsktra<T>(params: Params<T>, start: Vertex<T>) {
   }
 
   visited[params.getKey(start)] = true//params.getCost(start);
+  yield {
+    type: 'visited-updated',
+    visited: visited
+  };
+
   let count = 0;
   while (Object.keys(surface).length > 0) {
     count++;
@@ -30,24 +53,49 @@ function dijsktra<T>(params: Params<T>, start: Vertex<T>) {
       console.log('Amount of elements in surface is ' + Object.keys(surface).length)
     }
     const currentKey = Object.keys(surface).reduce((a, b) => surface[a].currentCost < surface[b].currentCost ? a : b);
+
+    yield {
+      type: 'current-updated',
+      currentId: currentKey
+    }
+
     const currentNode = surface[currentKey].node;
     const currentCost = surface[currentKey].currentCost;
 
     visited[currentKey] = true//currentCost;
+    yield {
+      type: 'visited-updated',
+      visited
+    }
     delete surface[currentKey];
+    yield {
+      type: 'surface-updated',
+      surface
+    }
     if (params.isFinish(currentNode)) {
-      return currentCost;
+      return;
     }
     const neighbours = params.getNeighbors(currentNode);
     for (const node of neighbours) {
+      yield {
+        type: 'neighbor-picked',
+        node: node
+      }
       const key = params.getKey(node);
       const cost = params.getCost(node);
 
       if (!visited[key] && (!surface[key] || surface[key].currentCost > currentCost + cost)) {
+        yield {
+          type: 'surface-updated',
+          surface: surface
+        }
         surface[key] = {
           node: node,
           currentCost: currentCost + cost
         };
+      }
+      yield {
+        type: 'next-neighbor'
       }
     }
   }
@@ -81,12 +129,12 @@ export type RouteInfo = {
 export function getParams(data: number[][]): Params<RouteInfo> {
   return {
     getCost: (node) => {
-      return data[node.data.row][node.data.col];
+      return data[node.row][node.col];
     },
     getNeighbors: function* (node) {
       console.log('Get neigh', node)
       for (const dir of directions) {
-        const current = node.data;
+        const current = node;
         if (oppositeMap[dir] === current.direction) {
           continue;
         }
@@ -103,21 +151,19 @@ export function getParams(data: number[][]): Params<RouteInfo> {
           continue;
         }
         yield {
-          data: {
-            col: newCol,
-            row: newRow,
-            direction: dir,
-            penalty: penalty
-          }
+          col: newCol,
+          row: newRow,
+          direction: dir,
+          penalty: penalty
         }
       }
     },
     getKey: (node) => {
-      const data = node.data
+      const data = node
       return `${data.row}_${data.col}_${data.direction}_${data.penalty}`;
     },
     isFinish: (node) => {
-      return node.data.row === data.length - 1 && node.data.col === data[0].length - 1
+      return node.row === data.length - 1 && node.col === data[0].length - 1
     }
   }
 }

@@ -5,17 +5,16 @@ td, th {
 }
 
 td.level-0 {
-  background-color: red;
-  opacity: 0.3;
+  
 }
 td.level-1 {
-  background-color: green;
+  
 }
 td.level-2 {
-  background-color: blue;
+  
 }
 td.level-3 {
-  background-color: coral;
+  
 }
 .wrapper {
   position: relative;
