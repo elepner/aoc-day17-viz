@@ -69,7 +69,7 @@ export class AppComponent {
       this.currentJob = dijsktra(this.inputParams, {
         col: 0,
         row: 0,
-        direction: 'up',
+        direction: 'left',
         penalty: 0
       })
     }

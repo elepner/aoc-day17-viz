@@ -138,15 +138,16 @@ export function getId(node: RouteInfo) {
 }
 
 export function getParams(data: number[][]): Params<RouteInfo> {
+  let isFirst = true;
   return {
     getCost: (node) => {
       return data[node.row][node.col];
     },
     getNeighbors: function* (node) {
-      console.log('Get neigh', node)
       for (const dir of directions) {
         const current = node;
-        if (oppositeMap[dir] === current.direction) {
+        if (oppositeMap[dir] === current.direction && !isFirst) {
+          isFirst = false;
           continue;
         }
         const [dr, dc] = directionMap[dir];
