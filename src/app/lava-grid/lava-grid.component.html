@@ -30,9 +30,30 @@
               {{level}}
             </td>
             @for(direction of directions; track $index) {
-            <td #lavaCell class="level-{{level}}" id="{{cell.rowNum}}_{{cell.colNum}}_{{level}}_{{direction}}">
+            <ng-container *ngIf="getInfo(cell.rowNum, cell.colNum, level, direction); let info">
+              <td #lavaCell class="info-cell"
+                  [class.visited]="info.visited">
+                <div class="info-grid">
+                  <div [class.isCurrent]="info.isCurrent">
 
-            </td>
+                  </div>
+                  <div [class.isCurrentNeighbor]="info.isCurrentNeighbor">
+
+                  </div>
+                  <div [class.isScannedNeighbor]="info.isScannedNeighbor">
+
+                  </div>
+                  <div [class.surface]="info.surface">
+
+                  </div>
+                </div>
+                <div style="z-index: 999;">
+                  {{cell.weight}}: {{info.surface?.currentCost}}
+                </div>
+
+
+              </td>
+            </ng-container>
             }
           </tr>
           }
@@ -42,7 +63,7 @@
     </tr>
     }
   </table>
-  <svg xmlns="http://www.w3.org/2000/svg">
+  <!-- <svg xmlns="http://www.w3.org/2000/svg">
     @for (line of lines; track line; let idx = $index) {
     <line [attr.x1]="line[0][0]" [attr.y1]="line[0][1]" [attr.x2]="line[1][0]" [attr.y2]="line[1][1]" stroke="black"
           [attr.marker-end]="'url(#arrow'+idx+')'" />
@@ -51,5 +72,5 @@
       <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
     </marker>`
     }
-  </svg>
+  </svg> -->
 </div>

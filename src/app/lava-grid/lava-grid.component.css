@@ -4,6 +4,42 @@ td, th {
   padding: 8px;
 }
 
+td.visited {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.info-grid > .surface {
+  background-color: cyan;
+}
+
+.info-grid > .isCurrent {
+  background-color: red;
+}
+
+.info-grid > .isScannedNeighbor {
+  background-color: blueviolet;
+}
+
+.info-grid > .isScannedNeighbor {
+  background-color: cadetblue;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: -1;
+}
+
+.info-cell {
+  position: relative;
+}
+
 td.level-0 {
   
 }

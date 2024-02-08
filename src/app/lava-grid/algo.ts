@@ -75,7 +75,12 @@ export function* dijsktra<T>(params: Params<T>, start: Vertex<T>): Generator<Dij
     if (params.isFinish(currentNode)) {
       return;
     }
-    const neighbours = params.getNeighbors(currentNode);
+
+    const neighbours = Array.from(params.getNeighbors(currentNode));
+    yield {
+      type: 'neighbors-scanned',
+      neighbors: neighbours
+    }
     for (const node of neighbours) {
       yield {
         type: 'neighbor-picked',
@@ -126,6 +131,12 @@ export type RouteInfo = {
   direction: Direction;
 }
 
+export function getId(node: RouteInfo) {
+  {
+    return `${node.row}_${node.col}_${node.direction}_${node.penalty}`;
+  }
+}
+
 export function getParams(data: number[][]): Params<RouteInfo> {
   return {
     getCost: (node) => {
@@ -159,14 +170,14 @@ export function getParams(data: number[][]): Params<RouteInfo> {
       }
     },
     getKey: (node) => {
-      const data = node
-      return `${data.row}_${data.col}_${data.direction}_${data.penalty}`;
+      return getId(node);
     },
     isFinish: (node) => {
       return node.row === data.length - 1 && node.col === data[0].length - 1
     }
   }
 }
+
 
 function inBounds(input: any[][], row: number, col: number) {
   return between(row, 0, input.length) && between(col, 0, input[0].length);

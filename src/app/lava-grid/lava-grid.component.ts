@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, ElementRef, QueryList, ViewChild, ViewChildren, computed, input, signal } from '@angular/core';
-import { RouteInfo, getParams } from './algo';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, QueryList, ViewChild, ViewChildren, computed, input, signal } from '@angular/core';
+import { NodeInfo, RouteInfo, getId, getParams } from './algo';
 import { CommonModule } from '@angular/common';
 interface Cell {
   rowNum: number;
@@ -23,7 +23,8 @@ type Vector = [number, number];
   standalone: true,
   imports: [CommonModule],
   templateUrl: './lava-grid.component.html',
-  styleUrls: [`./lava-grid.component.css`]
+  styleUrls: [`./lava-grid.component.css`],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LavaGridComponent implements AfterViewInit {
 
@@ -33,6 +34,11 @@ export class LavaGridComponent implements AfterViewInit {
   @ViewChild('wrapper')
   wrapperEl!: ElementRef<HTMLDivElement>;
 
+  surface = input<Record<string, NodeInfo<RouteInfo>>>({});
+  visited = input<Record<string, boolean>>({});
+  currentNodeId = input<string>();
+  scannedNeighbors = input<RouteInfo[]>([]);
+  currentNeighbor = input<RouteInfo>();
 
   inputData = input<number[][]>([]);
 
@@ -51,7 +57,7 @@ export class LavaGridComponent implements AfterViewInit {
     const grid = this.rowCols().map((row) => {
       return row.map(() => 42)
     })
-    console.log('CALC grid', this.rowCols(), 'Grid:', grid)
+
     return getParams(grid);
   })
 
@@ -65,7 +71,7 @@ export class LavaGridComponent implements AfterViewInit {
       acc[el.id] = el;
       return acc;
     }, {} as Record<string, HTMLElement>);
-    console.log(cellsMap);
+
 
     const rectWrapper = this.wrapperEl.nativeElement.getBoundingClientRect();
 
@@ -111,6 +117,26 @@ export class LavaGridComponent implements AfterViewInit {
 
   lines: Array<[Vector, Vector]> = [];
 
+  getInfo(row: number, col: number, penalty: number, direction: Direction) {
+    const id = toId({
+      col: col,
+      row: row,
+      direction: direction,
+      penalty: penalty
+    });
+    const cn = this.currentNeighbor()
+    const result = {
+      visited: this.visited()[id],
+      surface: this.surface()[id],
+      isCurrentNeighbor: cn && toId(cn) === id,
+      isScannedNeighbor: this.scannedNeighbors().map(toId).some(x => x === id),
+      isCurrent: this.currentNodeId() === id,
+
+    }
+
+    return result;
+  }
+
 }
 
 function makeLine(element1: HTMLElement, element2: HTMLElement, relativeTo: DOMRect): [Vector, Vector] {
@@ -127,15 +153,5 @@ function makeLine(element1: HTMLElement, element2: HTMLElement, relativeTo: DOMR
 }
 
 function toId(route: RouteInfo) {
-  return `${route.row}_${route.col}_${route.penalty}_${route.direction}`;
-}
-
-function fromDirection(id: string): RouteInfo {
-  const split = id.split('_');
-  return {
-    row: Number(split[0]),
-    col: Number(split[1]),
-    penalty: Number(split[2]),
-    direction: split[3] as any
-  }
+  return getId(route);
 }
